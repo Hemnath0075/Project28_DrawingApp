@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import cors from 'cors';
 require("dotenv").config();
 
+import AuthRoute from './API/Auth'
+
 const app = express();  
 app.use(cors());
 app.use(express.json());
@@ -14,6 +16,8 @@ mongoose.connect(process.env.MONGO, {
   })
   .then(() => console.log("Connected to DB"))
   .catch(err => console.log(err.message));
+
+app.use('/',AuthRoute);
 
 const port = process.env.PORT || 7000
 app.listen(port,()=>{
