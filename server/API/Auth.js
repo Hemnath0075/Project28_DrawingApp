@@ -4,9 +4,10 @@ import crypto from "crypto";
 require("dotenv").config();
 
 import { UserModel } from "../Models/User";
+
+import jwt from "jsonwebtoken";
 import userValidation from "../Validation/ValidateDetails";
 import passwordValidation from "../Validation/ValidateDetails";
-import jwt from "jsonwebtoken";
 
 const Router = express.Router();
 
@@ -28,10 +29,7 @@ Router.get("/login", async (req, res) => {
     const alreadyUser = await UserModel.findOne({ email: req.body.email });
     if (!alreadyUser)
       throw new Error("You have not registered with this Email");
-    const verifyPassword =await bcrypt.compare(
-      req.body.password,
-      alreadyUser.password
-    );
+    const verifyPassword = await bcrypt.compare(req.body.password, alreadyUser.password);
     if (!verifyPassword) throw new Error("Password You Entered is Wrong!!");
     const token = jwt.sign({ id: alreadyUser._id }, process.env.secretKey, {
       expiresIn: "1h",
@@ -47,7 +45,7 @@ Router.get("/login", async (req, res) => {
 });
 
 Router.post("/forgotpassword", async (req, res) => {
-  try{
+  try {
     const alreadyUser = await UserModel.findOne({ email: req.body.email });
     if (!alreadyUser) throw new Error("Email is invalid");
     const randomBytes = crypto.randomBytes(32);
@@ -64,23 +62,32 @@ Router.post("/forgotpassword", async (req, res) => {
         message: "Reset link has been sent to your Email",
       });
   }
-  catch(err){
-    return res.status(500).json({error:err.message});
+  catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 });
 
-Router.post("/resetpassword/:token",passwordValidation, async (req, res) => {
+
+const validateResetToken = async (req, res, next) => {
   try {
-    const user = await UserModel.findOne({ resetToken: req.params.token });
-    if (!user) throw new Error("invalid Reset Token");
-    // if(!req.body.password) throw new Error("please Enter the password")
-    const resetPassword = bcrypt.hash(req.body.password, 10);
-    user.password = resetPassword;
+    const user = await UserModel.findOne({ resetToken: req.params.token , tokenExpiry:{$gt:Date.now()} });
+    if (!user) throw new Error("Invalid Reset Token");
+    next();
+  }
+  catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+Router.post("/resetpassword/:token", validateResetToken, passwordValidation, async (req, res) => {
+  try {
+    const resetPassword =await bcrypt.hash(req.body.password, 10);
+    const updatePassword = await UserModel.findOneAndUpdate({resetToken:req.params.token},{password:resetPassword},{new:true});
     return res
       .status(200)
-      .json({ user: user, message: "password Changed Successfully" });
+      .json({ user: updatePassword, message: "password Changed Successfully" });
   } catch (err) {
-    return res.status(500).json({error:err.message});
+    return res.status(500).json({ error: err.message });
   }
 });
 
