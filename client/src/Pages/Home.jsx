@@ -1,18 +1,14 @@
 import React from "react";
 import { fabric } from "fabric";
 import { FabricJSCanvas, useFabricJSEditor } from "fabricjs-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/features/user";
 
 
 function Home() {
+  const dispatch=useDispatch();
   const isAuth=useSelector((state)=>state.users.status);
   console.log(isAuth)
-//   useEffect(()=>{
-//     console.log("the use effect hook")
-//     if(!isAuth){ 
-//         <Navigate to='/'replace/>
-//     }
-//   },[isAuth])
   const { editor, onReady } = useFabricJSEditor();
   const onAddCircle = () => {
     editor.addCircle();
@@ -55,8 +51,16 @@ function Home() {
     link.download = `eraser_example.${ext}`;
     link.click();
   };
+  const Logout=()=>{
+    localStorage.clear();
+    dispatch(logout());
+  }
   return (
-    <div className="App">
+    <div className="w-screen min-h-screen">
+      <div className="flex justify-between items-center text-4xl font-bold font-serif text-white w-screen h-16 bg-black pl-4">
+            <h1>Design.in</h1>
+            <button onClick={Logout}>Logout</button>
+          </div>
        <h1>FabricJS React Sample</h1>
        <button onClick={onAddCircle}>Add circle</button>
        <button onClick={onAddRectangle}>Add Rectangle</button>

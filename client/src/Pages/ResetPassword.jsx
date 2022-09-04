@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { resetPassword } from "../redux/features/user";
+import { Link, useNavigate } from "react-router-dom";
+import { resetPassword, verifyToken } from "../redux/features/user";
 
 function ResetPassword() {
+  const navigate=useNavigate();
   const dispatch=useDispatch();
   const [user, setUser] = useState({
     password: "",
@@ -12,15 +14,23 @@ function ResetPassword() {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
   const onSubmit = (e) => {
-    e.preventdefault();
+    e.preventDefault();
     dispatch(resetPassword(user));
   };
+  useEffect(()=>{
+    const token=localStorage.getItem("token");
+    if(token)
+     dispatch(verifyToken()).then((value)=>{
+      if(value.meta.requestStatus==="fulfilled")
+        navigate('/home');
+     })
+  },[])
   return (
     <>
       <div className="bg-white h-screen w-screen main-layout">
-        <h1 className="flex items-center text-4xl font-bold font-serif text-white w-screen h-16 bg-black pl-4">
+        <Link to="/"><h1 className="flex items-center text-4xl font-bold font-serif text-white w-screen h-16 bg-black pl-4">
           Design.in
-        </h1>
+        </h1></Link>
         <div className="h-screen w-screen flex justify-center items-center">
           <div className="h-auto w-auto p-4 basis-4/5 bg-opacity-20 backdrop-blur-sm drop-shadow-lg rounded bg-black">
             <h1 className=" flex justify-center items-center text-4xl font-bold font-serif text-white h-16 bg-black">

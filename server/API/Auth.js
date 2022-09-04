@@ -11,6 +11,19 @@ import passwordValidation from "../Validation/ValidateDetails";
 
 const Router = express.Router();
 
+Router.get('/verifytoken',async(req,res)=>{
+  try{
+    // console.log(req.headers);
+    const token=req.headers.authorization
+    const decode=jwt.verify(token,process.env.secretKey);
+    const user=await UserModel.findById(decode.id);
+    return res.status(200).json({data:decode,user});
+  }
+  catch(err){
+    return res.status(500).json({error:err.message})
+  }
+})
+
 Router.post("/signup", userValidation, async (req, res) => {
   try {
     const alreadyUser = await UserModel.findOne({ email: req.body.email });
@@ -24,8 +37,9 @@ Router.post("/signup", userValidation, async (req, res) => {
   }
 });
 
-Router.get("/login", async (req, res) => {
+Router.post("/login", async (req, res) => {
   try {
+    console.log(req.body);
     const alreadyUser = await UserModel.findOne({ email: req.body.email });
     if (!alreadyUser)
       throw new Error("You have not registered with this Email");

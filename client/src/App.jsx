@@ -1,5 +1,6 @@
-import { useSelector } from "react-redux";
-import { Navigate, Route, Routes, BrowserRouter } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Navigate, Route, Routes, BrowserRouter, useNavigate } from "react-router-dom";
 import "./App.css";
 import ForgotPassword from "./Pages/ForgotPassword";
 import Home from "./Pages/Home";
@@ -7,16 +8,14 @@ import Home from "./Pages/Home";
 import Login from "./Pages/Login";
 import ResetPassword from "./Pages/ResetPassword";
 import Signup from "./Pages/Signup";
+import { verifyToken } from "./redux/features/user";
 
 function App() {
+
   const isAuth=useSelector((state)=>state.users.status);
   console.log(isAuth)
-  // useEffect(()=>{
-  //   console.log("the use effect hook")
-  //   if(!isAuth){ 
-  //       <Navigate to='/'replace/>
-  //   }
-  // },[isAuth])
+  
+  
   return (
     <div className="App">
       <BrowserRouter>

@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 import ReactTyped from 'react-typed';
-import { signupUser } from '../redux/features/user';
+import { signupUser, verifyToken } from '../redux/features/user';
 
 function Signup() {
+    const navigate=useNavigate();
     const dispatch = useDispatch();
     const [user, setUser] = useState({
         username:"",
@@ -15,15 +17,24 @@ function Signup() {
         setUser({ ...user, [e.target.name]: e.target.value });
       };
       const onSubmit = (e) => {
-        e.preventdefault();
+        e.preventDefault();
         dispatch(signupUser(user));
+        navigate('/login');
       };
+      useEffect(()=>{
+        const token=localStorage.getItem("token");
+        if(token)
+         dispatch(verifyToken()).then((value)=>{
+          if(value.meta.requestStatus==="fulfilled")
+            navigate('/home');
+         })
+      },[])
       return (
         <>
           <div className="bg-white h-screen w-screen main-layout">
-            <h1 className="flex items-center text-4xl font-bold font-serif text-white w-screen h-16 bg-black pl-4">
+            <Link to="/"><h1 className="flex items-center text-4xl font-bold font-serif text-white w-screen h-16 bg-black pl-4">
               Design.in
-            </h1>
+            </h1></Link>
             <div className="h-screen flex justify-center flex-col items-center">
               <h1 className="text-7xl font-mono text-slate-800 font-bold">
                 <ReactTyped
@@ -33,7 +44,7 @@ function Signup() {
                 />
               </h1>
               <button className="px-20 mt-80 py-2 bg-teal-500 w-auto h-auto rounded">
-                <h1 className="text-2xl font-bold text-white">Login</h1>
+                <Link to="/login"><h1 className="text-2xl font-bold text-white">Login</h1></Link>
               </button>
             </div>
           </div>
@@ -41,7 +52,7 @@ function Signup() {
             <h1 className="flex items-center justify-center text-4xl font-bold font-serif text-white w-screen h-16 bg-black pl-4">
               Register Into Design.in
             </h1>
-            <form onSubmit={onSubmit}>
+            <form>
               <div className="relative w-9/12 ml-auto mr-auto mb-3">
                 <input
                   type="username"
@@ -81,6 +92,7 @@ function Signup() {
                   name="login"
                   id="login"
                   value="Submit"
+                  onClick={onSubmit}  
                   className="cursor-pointer bg-blue text-white hover:bg-opacity-90 font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:bg-opacity-90"
                 />
               </div>

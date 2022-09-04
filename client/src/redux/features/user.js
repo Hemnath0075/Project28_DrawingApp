@@ -1,5 +1,18 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios'
+const token =localStorage.getItem("token");
+const config={
+    headers:{
+        Authorization:token, 
+    }
+}
+export const verifyToken = createAsyncThunk(
+    "user/verifyToken",
+    async()=>{
+        const res=await axios.get("http://localhost:7000/verifytoken",config)
+        return res.data;
+    }
+)
 
 export const loginUser = createAsyncThunk(
     "user/loginUser",
@@ -50,20 +63,25 @@ const userSlice = createSlice({
     reducers:{
         logout(state,action){
             state.status=false;
+            state.user={}
         }
     },
     extraReducers:{
-        [loginUser.pending]:(state,action) => {
-            state.status=false;
-        },
         [loginUser.fulfilled]:(state,action)=>{
             state.status=true;
             state.user=action.payload;
             localStorage.setItem("user",action.payload._id);
-            localStorage.setItem("status",true);
+            localStorage.setItem("token",action.payload.token);
         }, 
         [loginUser.rejected]:(state,action)=>{
-            state.status="failed"
+            state.status=false
+        },
+        [verifyToken.fulfilled]:(state,action)=>{
+            state.status=true;
+            state.user=action.payload.user;
+        },
+        [verifyToken.rejected]:(state,action)=>{
+            state.status=false
         },
         [signupUser.fulfilled]:(state,action)=>{
             state.newuser="false";
