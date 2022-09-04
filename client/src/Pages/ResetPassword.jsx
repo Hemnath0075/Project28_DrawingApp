@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { resetPassword } from "../redux/features/user";
 
 function ResetPassword() {
+  const dispatch=useDispatch();
   const [user, setUser] = useState({
     password: "",
   });
@@ -9,7 +12,8 @@ function ResetPassword() {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
   const onSubmit = (e) => {
-    e.prevent.default();
+    e.preventdefault();
+    dispatch(resetPassword(user));
   };
   return (
     <>

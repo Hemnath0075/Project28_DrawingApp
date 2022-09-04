@@ -1,6 +1,9 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { forgotPassword } from "../redux/features/user";
 
 function ForgotPassword() {
+  const dispatch=useDispatch();
   const [user, setUser] = useState({
     email: "",
   });
@@ -9,7 +12,8 @@ function ForgotPassword() {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
   const onSubmit = (e) => {
-    e.prevent.default();
+    e.preventdefault();
+    dispatch(forgotPassword(user))
   };
   return (
     <>

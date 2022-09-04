@@ -1,7 +1,11 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { Navigate } from "react-router-dom";
 import ReactTyped from "react-typed";
+import { loginUser } from "../redux/features/user";
 
 function Login() {
+  const dispatch = useDispatch();
   const [user, setUser] = useState({
     email: "",
     password: "",
@@ -11,7 +15,9 @@ function Login() {
     setUser({ ...user, [e.target.name]: e.target.value });
   };
   const onSubmit = (e) => {
-    e.prevent.default();
+    e.preventdefault();
+    dispatch(loginUser(user));
+    <Navigate to="/home"/>
   };
   return (
     <>

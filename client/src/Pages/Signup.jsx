@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux';
 import ReactTyped from 'react-typed';
+import { signupUser } from '../redux/features/user';
 
 function Signup() {
+    const dispatch = useDispatch();
     const [user, setUser] = useState({
         username:"",
         email: "",
@@ -12,7 +15,8 @@ function Signup() {
         setUser({ ...user, [e.target.name]: e.target.value });
       };
       const onSubmit = (e) => {
-        e.prevent.default();
+        e.preventdefault();
+        dispatch(signupUser(user));
       };
       return (
         <>
