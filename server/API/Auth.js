@@ -8,19 +8,22 @@ import { UserModel } from "../Models/User";
 import jwt from "jsonwebtoken";
 import userValidation from "../Validation/ValidateDetails";
 import passwordValidation from "../Validation/ValidateDetails";
+import { CanvasModel } from "../Models/Canvas";
+import { sendPasswordReset } from "../Utils/Email";
 
 const Router = express.Router();
 
-Router.get('/verifytoken',async(req,res)=>{
-  try{
+Router.get('/verifytoken', async (req, res) => {
+  try {
     // console.log(req.headers);
-    const token=req.headers.authorization
-    const decode=jwt.verify(token,process.env.secretKey);
-    const user=await UserModel.findById(decode.id);
-    return res.status(200).json({data:decode,user});
+    const token = req.headers.authorization
+    const decode = jwt.verify(token, process.env.secretKey);
+    const user = await UserModel.findById(decode.id);
+    const works=await CanvasModel.find({userid:decode.id})
+    return res.status(200).json({ data: decode, user,work:works });
   }
-  catch(err){
-    return res.status(500).json({error:err.message})
+  catch (err) {
+    return res.status(500).json({ error: err.message })
   }
 })
 
@@ -41,6 +44,8 @@ Router.post("/login", async (req, res) => {
   try {
     console.log(req.body);
     const alreadyUser = await UserModel.findOne({ email: req.body.email });
+    console.log(alreadyUser);
+    const work=await CanvasModel.find({userid:alreadyUser._id})
     if (!alreadyUser)
       throw new Error("You have not registered with this Email");
     const verifyPassword = await bcrypt.compare(req.body.password, alreadyUser.password);
@@ -51,6 +56,7 @@ Router.post("/login", async (req, res) => {
     res.status(200).json({
       token: token,
       user: alreadyUser,
+      work:work,
       message: "loggedIn Successfully",
     });
   } catch (err) {
@@ -64,6 +70,7 @@ Router.post("/forgotpassword", async (req, res) => {
     if (!alreadyUser) throw new Error("Email is invalid");
     const randomBytes = crypto.randomBytes(32);
     const resetToken = randomBytes.toString("hex");
+    sendPasswordReset(req.body.email,resetToken);
     const setResetToken = await UserModel.findOneAndUpdate(
       { email: req.body.email },
       { resetToken: resetToken, tokenExpiry: Date.now() + 3600000 },
@@ -84,7 +91,7 @@ Router.post("/forgotpassword", async (req, res) => {
 
 const validateResetToken = async (req, res, next) => {
   try {
-    const user = await UserModel.findOne({ resetToken: req.params.token , tokenExpiry:{$gt:Date.now()} });
+    const user = await UserModel.findOne({ resetToken: req.params.token, tokenExpiry: { $gt: Date.now() } });
     if (!user) throw new Error("Invalid Reset Token");
     next();
   }
@@ -95,8 +102,8 @@ const validateResetToken = async (req, res, next) => {
 
 Router.post("/resetpassword/:token", validateResetToken, passwordValidation, async (req, res) => {
   try {
-    const resetPassword =await bcrypt.hash(req.body.password, 10);
-    const updatePassword = await UserModel.findOneAndUpdate({resetToken:req.params.token},{password:resetPassword},{new:true});
+    const resetPassword = await bcrypt.hash(req.body.password, 10);
+    const updatePassword = await UserModel.findOneAndUpdate({ resetToken: req.params.token }, { password: resetPassword }, { new: true });
     return res
       .status(200)
       .json({ user: updatePassword, message: "password Changed Successfully" });
@@ -104,5 +111,23 @@ Router.post("/resetpassword/:token", validateResetToken, passwordValidation, asy
     return res.status(500).json({ error: err.message });
   }
 });
+
+Router.post('/save', async (req, res) => {
+  try {
+    const data = req.body;
+    const token = req.headers.authorization
+    const decode = jwt.verify(token, process.env.secretKey);
+    const userid = decode.id;
+    const saveWork = await CanvasModel.create({
+      canvas: data,
+      userid:userid
+    })
+    return res.status(200).json({work:saveWork,message:"saved Succesfully"});
+
+  }
+  catch (err) {
+    return res.status(500).json({error:err.message});
+  }
+})
 
 export default Router;

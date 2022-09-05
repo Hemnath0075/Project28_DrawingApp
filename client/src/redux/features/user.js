@@ -33,7 +33,7 @@ export const signupUser = createAsyncThunk(
 export const forgotPassword = createAsyncThunk(
     "user/forgotPassword",
     async (data)=>{
-        const res = await axios.get("http://localhost:7000/forgotpassword",data);
+        const res = await axios.post("http://localhost:7000/forgotpassword",data);
         return res.data;
     }
 )
@@ -41,7 +41,7 @@ export const forgotPassword = createAsyncThunk(
 export const resetPassword = createAsyncThunk(
     "user/resetPassword",
     async (data)=>{
-        const res = await axios.post("http://localhost:7000/resetpassword",data);
+        const res = await axios.post(`http://localhost:7000${data.location}`,data);
         return res.data;
     }
 )
@@ -52,6 +52,13 @@ export const isUserLoggedIn = createAsyncThunk(
         return res.data;
     }
 )
+export const saveWork = createAsyncThunk(
+    "user/saveWork",
+    async (data)=>{
+        const res = await axios.post("http://localhost:7000/save",data,config);
+        return res.data;
+    }
+)
 
 const userSlice = createSlice({
     name:"user",
@@ -59,6 +66,7 @@ const userSlice = createSlice({
         user:{},
         status:false,
         newuser:null,
+        work:{}
     },
     reducers:{
         logout(state,action){
@@ -70,6 +78,8 @@ const userSlice = createSlice({
         [loginUser.fulfilled]:(state,action)=>{
             state.status=true;
             state.user=action.payload;
+            if(action.payload.work.length>0)
+                 state.work=action.payload.work[0].canvas;    
             localStorage.setItem("user",action.payload._id);
             localStorage.setItem("token",action.payload.token);
         }, 
@@ -79,9 +89,16 @@ const userSlice = createSlice({
         [verifyToken.fulfilled]:(state,action)=>{
             state.status=true;
             state.user=action.payload.user;
+            state.work=action.payload.work[0].canvas;
         },
         [verifyToken.rejected]:(state,action)=>{
             state.status=false
+        },
+        [saveWork.fulfilled]:(state,action)=>{
+            state.work=action.payload.saveWork.canvas;
+        },
+        [saveWork.rejected]:(state,action)=>{
+            state.work={};
         },
         [signupUser.fulfilled]:(state,action)=>{
             state.newuser="false";
@@ -99,6 +116,7 @@ export const GetUser=(state) => state.user;
 export const {logout}=userSlice.actions;
 // console.log(GetUser);
 export const UserStatus=(state) => state.status;
+export const WorkStatus=(state) => state.users.work;
 // console.log(UserStatus);
 
 export default userSlice.reducer;

@@ -4,10 +4,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { resetPassword, verifyToken } from "../redux/features/user";
 
 function ResetPassword() {
+  const location=window.location.pathname;
+  console.log(location)
   const navigate=useNavigate();
   const dispatch=useDispatch();
   const [user, setUser] = useState({
     password: "",
+    location:location
   });
   const { password } = user;
   const onChange = (e) => {
@@ -15,7 +18,9 @@ function ResetPassword() {
   };
   const onSubmit = (e) => {
     e.preventDefault();
-    dispatch(resetPassword(user));
+    dispatch(resetPassword(user)).then(()=>{
+      navigate('/');
+    });
   };
   useEffect(()=>{
     const token=localStorage.getItem("token");
